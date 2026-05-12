@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D.A.D_NEURAL_LINK_V4.0</title>
+    <style>
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-green: #0f0;
+            --bg-dark: #020202;
+            --cyber-font: 'Courier New', Courier, monospace;
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            background-color: var(--bg-dark);
+            color: var(--neon-blue);
+            font-family: var(--cyber-font);
+            overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
+            perspective: 2000px; /* Stronger 3D perspective */
+        }
+
+        /* 3D Space Background (Parallax Starfield) */
+        #stars, #stars2, #stars3 {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: transparent; z-index: -2;
+        }
+        #stars  { box-shadow: 10px 10px #fff, 50px 100px #fff; animation: star-move 200s linear infinite; }
+        #stars2 { box-shadow: 20px 20px #aaa, 70px 150px #aaa; animation: star-move 100s linear infinite; }
+        #stars3 { box-shadow: 30px 30px #555, 90px 200px #555; animation: star-move 50s linear infinite; }
+        @keyframes star-move { from { transform: translateY(0); } to { transform: translateY(-2000px); } }
+        /* Add many, many stars dynamically with JS later... */
+
+        /* Cyberpunk HUD Frame with 3D Tilt */
+        .cyber-interface {
+            position: relative;
+            width: 90%; max-width: 800px; height: 80%;
+            background: rgba(10, 10, 10, 0.8);
+            border: 2px solid var(--neon-blue);
+            border-radius: 10px;
+            box-shadow: 0 0 20px var(--neon-blue), inset 0 0 10px var(--neon-blue);
+            display: flex; flex-direction: column; justify-content: space-between;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease;
+            cursor: move;
+        }
+        .cyber-interface::before { /* Scanning line animation */
+            content: ""; position: absolute; top: -100%; left: 0;
+            width: 100%; height: 2px; background: rgba(0, 243, 255, 0.5);
+            animation: scanning 4s linear infinite;
+        }
+        @keyframes scanning { 0% { top: -10%; } 100% { top: 110%; } }
+
+        /* Floating 3D Elements */
+        .floating-element {
+            position: absolute; color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue);
+            transform-style: preserve-3d;
+            opacity: 0.7;
+        }
+        .element-gear  { font-size: 30px; animation: spin 10s linear infinite; top: 10%; right: 5%; }
+        .element-heart { font-size: 40px; color: var(--neon-pink); text-shadow: 0 0 10px var(--neon-pink); animation: beat 1s infinite; top: 70%; left: 10%; }
+        .element-data  { font-size: 14px; top: 30%; right: 15%; animation: float 5s ease-in-out infinite; }
+
+        @keyframes spin { from { transform: rotateY(0deg) rotateZ(0deg); } to { transform: rotateY(360deg) rotateZ(360deg); } }
+        @keyframes beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        @keyframes float { 0%, 100% { transform: translateZ(50px) translateY(0px); } 50% { transform: translateZ(-50px) translateY(-20px); } }
+
+        /* Core Interactive Cube (Modified V3) */
+        .cube-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); transform-style: preserve-3d; }
+        .cube { width: 100px; height: 100px; transform-style: preserve-3d; animation: rotateCube 15s infinite linear; cursor: pointer; transition: 0.3s; }
+        .cube div { position: absolute; width: 100px; height: 100px; border: 2px solid var(--neon-green); background: rgba(0, 255, 0, 0.05); box-shadow: 0 0 15px var(--neon-green); text-align: center; line-height: 100px; font-weight: bold; }
+        .front { transform: translateZ(50px); }
+        .back  { transform: rotateY(180deg) translateZ(50px); }
+        .left  { transform: rotateY(-90deg) translateZ(50px); }
+        .right { transform: rotateY(90deg) translateZ(50px); }
+        .top   { transform: rotateX(90deg) translateZ(50px); }
+        .bottom{ transform: rotateX(-90deg) translateZ(50px); }
+
+        @keyframes rotateCube {
+            0% { transform: rotateX(0deg) rotateY(0deg); }
+            100% { transform: rotateX(360deg) rotateY(720deg); }
+        }
+        .cube:hover { transform: scale(1.1); filter: brightness(1.2); }
+
+        /* Neon Particle Trail */
+        .particle { position: absolute; pointer-events: none; border-radius: 50%; background: var(--neon-pink); animation: particle-fade 1s ease-out; }
+        @keyframes particle-fade { 0% { opacity: 1; transform: scale(1) translateZ(100px); } 100% { opacity: 0; transform: scale(0) translateZ(0); } }
+
+        /* User Message Overlay (Revealed) */
+        #message {
+            display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 350px; padding: 30px; background: rgba(0, 0, 0, 0.95);
+            border: 2px solid var(--neon-pink); border-radius: 10px;
+            box-shadow: 0 0 30px var(--neon-pink); z-index: 20;
+            transform-style: preserve-3d;
+            animation: glitch 0.3s infinite;
+        }
+        #message h1 { color: var(--neon-pink); font-size: 1.8rem; text-shadow: 0 0 10px var(--neon-pink); }
+        #message p { font-size: 1.1rem; line-height: 1.6; }
+
+        @keyframes glitch {
+            0%, 100% { transform: translate(-50%, -50%) skew(0deg); }
+            20% { transform: translate(-51%, -49%) skew(1deg); border-color: var(--neon-blue); }
+            40% { transform: translate(-49%, -51%) skew(-1deg); }
+        }
+
+        /* Interface Texts */
+        .interface-header, .interface-footer { padding: 10px; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; }
+        .interface-footer { color: var(--neon-green); animation: blink 2s infinite; cursor: pointer; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+    </style>
+</head>
+<body>
+
+    <!-- 3D Starfield Background Layers -->
+    <div id="stars"></div><div id="stars2"></div><div id="stars3"></div>
+
+    <!-- Main Cybernetic Interface Frame (With 3D Tilt) -->
+    <div class="cyber-interface" id="mainInterface">
+        <div class="interface-header">
+            NEURALINK STATUS: [ACTIVE] // AUTH: DAD_PRIMARY
+        </div>
+
+        <!-- Floating 3D Elements inside the interface -->
+        <div class="floating-element element-gear">⚙️</div>
+        <div class="floating-element element-heart">❤️</div>
+        <div class="floating-element element-data">01101100<br>01101111<br>01110110<br>01100101</div>
+
+        <!-- The Interactive 3D Cube Container -->
+        <div class="cube-container">
+            <div class="cube" id="coreCube" onclick="initiateDataTransfer()">
+                <div class="front">DATA</div>
+                <div class="back">LOVE</div>
+                <div class="left">DAD</div>
+                <div class="right">LINK</div>
+                <div class="top">CODE</div>
+                <div class="bottom">CORE</div>
+            </div>
+        </div>
+
+        <!-- Hidden Message Overlay -->
+        <div id="message">
+            <h1>ACCESS GRANTED</h1>
+            <hr style="border: 0.5px solid var(--neon-blue)">
+            <p>> [LOG_ENTRY]: Dad, you're the ultimate architect. Thank you for building the foundation of my world.</p>
+            <p style="color: var(--neon-blue);">// ENCRYPTION STATUS: 100% LOVE // [COMPLETED]</p>
+            <button onclick="location.reload()" style="background:none; border:1px solid var(--neon-blue); color:white; font-family:var(--cyber-font); cursor:pointer; padding:5px; margin-top:10px;">REBOOT SYSTEM</button>
+        </div>
+
+        <div class="interface-footer" id="hint">
+            [TAP DATA CORE TO INITIATE DATA TRANSFER]
+        </div>
+    </div>
+
+    <script>
+        // --- Particle System (Tap trail) ---
+        const interfaceEl = document.getElementById('mainInterface');
+        interfaceEl.addEventListener('click', (e) => {
+            const particleCount = 15;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Get tap coordinates relative to the interface
+                const rect = interfaceEl.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                particle.style.width = `${Math.random() * 8 + 2}px`;
+                particle.style.height = particle.style.width;
+                
+                // Random drift direction
+                particle.style.setProperty('--drift-x', `${(Math.random() - 0.5) * 100}px`);
+                particle.style.setProperty('--drift-y', `${(Math.random() - 0.5) * 100}px`);
+                
+                interfaceEl.appendChild(particle);
+                setTimeout(() => particle.remove(), 1000); // Clean up
+            }
+        });
+
+        // --- 3D Frame Tilt Effect ---
+        interfaceEl.addEventListener('mousemove', (e) => {
+            const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
+            const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+            interfaceEl.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+        });
+        interfaceEl.addEventListener('mouseleave', () => {
+            interfaceEl.style.transform = `rotateY(0deg) rotateX(0deg)`;
+        });
+
+        // --- Initiate Data Transfer (Core Interaction) ---
+        function initiateDataTransfer() {
+            const cube = document.getElementById('coreCube');
+            const msg = document.getElementById('message');
+            const hint = document.getElementById('hint');
+
+            // 3D Shatter/Expansion Animation
+            cube.style.transform = "scale(10) translateZ(500px)";
+            cube.style.opacity = "0";
+            
+            // Haptic Feedback (if supported)
+            if ("vibrate" in navigator) {
+                navigator.vibrate([150, 50, 150]);
+            }
+
+            setTimeout(() => {
+                cube.style.display = "none";
+                hint.style.display = "none";
+                msg.style.display = "block";
+            }, 600);
+        }
+
+        // --- Dynamically generate stars ---
+        function createStars() {
+            const layers = ['stars', 'stars2', 'stars3'];
+            layers.forEach(layerId => {
+                const layer = document.getElementById(layerId);
+                let starsString = "";
+                for (let i = 0; i < 200; i++) {
+                    starsString += `${Math.random() * 2000}px ${Math.random() * 2000}px ${Math.random() > 0.5 ? '#fff' : '#aaa'}, `;
+                }
+                layer.style.boxShadow = starsString.slice(0, -2);
+            });
+        }
+        createStars(); // Initialize star layers
+    </script>
+</body>
+</html>
